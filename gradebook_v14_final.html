@@ -1,0 +1,751 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f7f6f3;color:#1a1a1a;direction:rtl}
+.app{max-width:720px;margin:0 auto;padding:24px 18px 60px}
+.hdr{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.hdr-ic{width:42px;height:42px;border-radius:11px;background:#e8effd;display:flex;align-items:center;justify-content:center}
+.hdr-ic i{font-size:22px;color:#1a56db}
+h1{font-size:19px;font-weight:500}.hsub{font-size:13px;color:#777;margin-top:2px}
+.drop{border:2px dashed #c5c1ba;border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;background:#fff;transition:all .15s}
+.drop:hover,.drop.on{border-color:#4a7cf7;background:#f0f4ff}
+.drop i.big{font-size:44px;color:#c0bdb7;display:block;margin-bottom:12px}
+.drop:hover i.big,.drop.on i.big{color:#4a7cf7}
+.drop h2{font-size:15px;font-weight:500;margin-bottom:5px}
+.drop p{font-size:13px;color:#888;margin-bottom:16px}
+.bbtn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;cursor:pointer}
+input[type=file]{display:none}
+.fitem{background:#fff;border:1px solid #e6e2db;border-radius:12px;margin-bottom:10px;overflow:hidden}
+.fhdr{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none}
+.fhdr:hover{background:#fafaf8}
+.fn{flex:1;font-weight:500;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc{font-size:12px;color:#888;flex-shrink:0}
+.fbadge{font-size:11px;padding:2px 8px;border-radius:10px;background:#e8f0fe;color:#1a56db;flex-shrink:0}
+.xb{background:none;border:none;cursor:pointer;color:#bbb;padding:3px;font-size:16px;display:flex;align-items:center;flex-shrink:0}
+.xb:hover{color:#666}
+.chev{font-size:14px;color:#aaa;flex-shrink:0;transition:transform .2s}
+.chev.open{transform:rotate(180deg)}
+.fsubrow{display:flex;align-items:center;gap:8px;padding:9px 14px;background:#f0f4ff;border-top:1px solid #dce8fb}
+.fsubrow label{font-size:12px;font-weight:600;color:#1a56db;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.subinput{flex:1;padding:7px 11px;border:1.5px solid #b8cef8;border-radius:8px;font-size:14px;background:#fff}
+.subinput:focus{outline:none;border-color:#4a7cf7;box-shadow:0 0 0 3px rgba(74,124,247,.12)}
+.subinput.missing{border-color:#ef4444;background:#fff5f5}
+.fbody{padding:14px;border-top:1px solid #f0ede8;display:none}
+.fbody.open{display:block}
+.sh-block{border:1px solid #e8e4dc;border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fafaf8}
+.sh-title{display:flex;align-items:center;gap:7px;margin-bottom:11px;font-size:13px;font-weight:500;flex-wrap:wrap}
+.cgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;margin-bottom:5px}
+.tag-b{background:#e8f0fe;color:#1a56db}
+.tag-o{background:#fff4e0;color:#b7660d}
+.tag-g{background:#e6f5ec;color:#1a7c3e}
+.ci{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.ci span{font-size:12px;color:#888}
+.cl{width:40px;padding:6px 7px;border-radius:7px;border:1px solid #ddd;font-size:13px;text-align:center;background:#fff;text-transform:uppercase}
+.cl:focus{outline:none;border-color:#4a7cf7}
+.sm{width:42px;padding:6px 7px;border-radius:7px;border:1px solid #ddd;font-size:13px;text-align:center;background:#fff}
+.sm:focus{outline:none;border-color:#4a7cf7}
+.pv{font-size:11px;color:#2e9c5c;background:#eafaf1;border-radius:5px;padding:2px 6px;margin-top:4px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv.em{color:#bbb;background:#f5f3ee;font-style:italic}
+.combined-badge{font-size:10px;padding:2px 7px;border-radius:8px;background:#fff4e0;color:#b7660d;display:inline-flex;align-items:center;gap:3px;margin-top:5px}
+.add-more{display:flex;align-items:center;gap:6px;font-size:13px;color:#4a7cf7;background:none;border:none;cursor:pointer;padding:4px 0;margin-bottom:16px}
+.divider{height:1px;background:#f0ede8;margin:14px 0}
+.card{background:#fff;border:1px solid #e6e2db;border-radius:13px;padding:18px;margin-bottom:14px}
+.ctitle{font-size:14px;font-weight:500;display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.ctitle i{font-size:17px;color:#4a7cf7}
+.sinput{padding:9px 12px;font-size:14px;border-radius:8px;border:1px solid #ddd;width:100%;background:#fff}
+.sinput:focus{outline:none;border-color:#4a7cf7;box-shadow:0 0 0 3px rgba(74,124,247,.1)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info-grid label{font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px}
+.info-grid .full{grid-column:1/-1}
+.stats{display:flex;gap:16px;flex-wrap:wrap;padding:12px 14px;background:#f5f3ee;border-radius:10px}
+.stat .lbl{font-size:11px;color:#888;display:flex;align-items:center;gap:3px}
+.stat .val{font-size:21px;font-weight:500}
+.preview-info{margin-top:10px;padding:10px 14px;background:#f0f4ff;border-radius:8px;font-size:12px;color:#1a56db;line-height:1.9}
+.gbtn{display:flex;align-items:center;gap:8px;padding:13px 24px;background:#1a56db;border:none;border-radius:11px;color:#fff;font-size:15px;font-weight:500;cursor:pointer;width:100%;justify-content:center;margin-top:4px}
+.gbtn:hover{background:#1748c0}
+.gbtn:disabled{background:#8aabf7;cursor:not-allowed}
+.dl-box{background:#0f4c26;border-radius:14px;padding:24px;text-align:center;margin-bottom:14px}
+.dl-box p{color:#86efac;font-size:14px;margin-bottom:14px}
+.dl-box a{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:#16a34a;border-radius:11px;color:#fff;font-size:16px;font-weight:600;text-decoration:none}
+.sbox{text-align:center;padding:32px 20px;background:#f0fdf4;border:1px solid #86efac;border-radius:16px;margin-bottom:14px}
+.cc{width:54px;height:54px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.cc i{font-size:30px;color:#16a34a}
+.sbox h2{font-size:18px;font-weight:500;color:#15803d;margin-bottom:6px}
+.sbox p{font-size:14px;color:#16a34a}
+.dcard{background:#f5f3ee;border-radius:10px;padding:14px 18px;border:1px solid #e6e2db;margin-bottom:10px;font-size:13px;color:#555;line-height:2}
+.rbtn{display:flex;align-items:center;gap:6px;padding:9px 18px;border:1px solid #ddd;border-radius:9px;background:#fff;font-size:14px;cursor:pointer}
+.rbtn:hover{background:#f5f5f5}
+.err{background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:14px;color:#991b1b}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:18px;height:18px;border:2px solid #e8effd;border-top-color:#1a56db;border-radius:50%;animation:spin .7s linear infinite}
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;color:#1a56db;font-size:14px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr">
+  <div class="hdr-ic"><i class="ti ti-notebook"></i></div>
+  <div><h1>Gradebook Generator</h1><p class="hsub">مادة لكل ملف · كل عمود تحته علامة · ترتيب تصاعدي · غلاف A4</p></div>
+</div>
+<div id="errBox" style="display:none" class="err"><i class="ti ti-alert-circle"></i><span id="errMsg"></span></div>
+
+<!-- UPLOAD -->
+<div id="phase0">
+  <div class="drop" id="dz" onclick="document.getElementById('fi').click()">
+    <i class="ti ti-files big"></i>
+    <h2>اسحب الملفات هنا أو اضغط للاختيار</h2>
+    <p>كل شيتات كل ملف · xlsx · xls · csv</p>
+    <div class="bbtn"><i class="ti ti-upload" style="font-size:14px"></i> اختر ملفات</div>
+    <input type="file" id="fi" accept=".xlsx,.xls,.csv" multiple>
+  </div>
+</div>
+
+<!-- CONFIGURE -->
+<div id="phase1" style="display:none">
+  <div id="flist"></div>
+  <button class="add-more" onclick="document.getElementById('fi2').click()">
+    <i class="ti ti-plus" style="font-size:14px"></i> أضف ملفات إضافية
+  </button>
+  <input type="file" id="fi2" accept=".xlsx,.xls,.csv" multiple>
+  <div class="divider"></div>
+
+  <div class="card">
+    <p class="ctitle"><i class="ti ti-id-badge"></i> معلومات صفحة الغلاف</p>
+    <div class="info-grid">
+      <div><label>المديرية</label><input class="sinput" type="text" id="directorate" placeholder="مديرية التربية…"></div>
+      <div><label>المدرسة</label><input class="sinput" type="text" id="school" placeholder="اسم المدرسة…"></div>
+      <div class="full"><label>اسم المعلم / المعلمة</label><input class="sinput" type="text" id="teacher" placeholder="الاسم الكامل…"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="ctitle"><i class="ti ti-calendar-stats"></i> هيكل الجدول</p>
+    <div style="font-size:13px;color:#555;background:#f5f3ee;padding:10px 14px;border-radius:8px;margin-bottom:12px;line-height:1.8">
+      📅 الشهر 1 والشهر 2: كل منهما عمود واحد + خانة علامة تحته<br>
+      📅 الشهر 3: أعمدة فرعية (Q1..QN) كل منها + خانة علامة تحته<br>
+      📊 عمود المجموع مظلل · ترتيب الصفوف والشعب تصاعدي أبجدي
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:13px;color:#555">عدد الأعمدة الفرعية للشهر الثالث:</span>
+      <input class="sm" type="number" id="subCols" min="1" max="10" value="5">
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="ctitle"><i class="ti ti-chart-dots"></i> ملخص</p>
+    <div class="stats">
+      <div class="stat"><div class="lbl"><i class="ti ti-files" style="font-size:12px"></i> ملفات</div><div class="val" id="pvF">0</div></div>
+      <div class="stat"><div class="lbl"><i class="ti ti-layout-columns" style="font-size:12px"></i> شيتات مصدر</div><div class="val" id="pvSrc">0</div></div>
+      <div class="stat"><div class="lbl"><i class="ti ti-users" style="font-size:12px"></i> طلاب</div><div class="val" id="pvSt">—</div></div>
+      <div class="stat"><div class="lbl"><i class="ti ti-table" style="font-size:12px"></i> شيتات ناتجة</div><div class="val" id="pvSh">—</div></div>
+    </div>
+    <div id="gradePreview" class="preview-info" style="display:none"></div>
+  </div>
+
+  <div id="loadingBox" style="display:none" class="loading"><div class="spinner"></div> جاري بناء الملف…</div>
+  <button class="gbtn" id="genBtn" onclick="generate()">
+    <i class="ti ti-table-export" style="font-size:18px"></i> إنشاء دفتر الدرجات
+  </button>
+</div>
+
+<!-- DONE -->
+<div id="phase2" style="display:none">
+  <div class="sbox">
+    <div class="cc"><i class="ti ti-circle-check"></i></div>
+    <h2>الدفتر جاهز!</h2>
+    <p>غلاف A4 + <strong id="scTxt">0</strong> شيت بيانات</p>
+  </div>
+  <div class="dl-box">
+    <p><i class="ti ti-download" style="font-size:15px;margin-left:4px"></i> اضغط لتحميل الملف</p>
+    <a id="dlLink" href="#" download="gradebook.xlsx">
+      <i class="ti ti-download" style="font-size:20px"></i> تحميل دفتر الدرجات (.xlsx)
+    </a>
+  </div>
+  <div class="dcard">
+    ✅ كل عمود (ش1 · ش2 · Q1..QN · نهائي · مجموع) مدموج مع خانة علامة فارغة تحته<br>
+    ✅ الصفوف مرتبة تصاعدياً (خامس ← عاشر ← أول ثانوي)<br>
+    ✅ الشعب مرتبة أبجدياً داخل كل صف<br>
+    ✅ عمود المجموع مظلل بالأصفر الفاتح<br>
+    ✅ الصف+الشعبة في خلية واحدة → يُكتشف تلقائياً<br>
+    ✅ غلاف A4 بتنسيق احترافي
+  </div>
+  <button class="rbtn" onclick="resetAll()"><i class="ti ti-refresh" style="font-size:15px"></i> إنشاء دفتر جديد</button>
+</div>
+</div>
+
+<script>
+// ── Defaults ──
+const DEF={gradeCC:'B',gradeR:1,sectionCC:'B',sectionR:7,nameCL:'N',nameRow:19};
+let files=[];
+
+// ── Helpers ──
+function cIdx(l){l=String(l).toUpperCase().trim();if(!l)return 0;let n=0;for(let i=0;i<l.length;i++)n=n*26+(l.charCodeAt(i)-64);return n-1;}
+function cLtr(n){let s='';n++;while(n>0){s=String.fromCharCode(((n-1)%26)+65)+s;n=Math.floor((n-1)/26);}return s;}
+function v(id){return document.getElementById(id);}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showErr(msg){v('errBox').style.display=msg?'flex':'none';v('errMsg').textContent=msg||'';}
+function getCell(data,r0,c0){return String((data[r0]||[])[c0]||'').trim();}
+function sheetToArr(ws){return XLSX.utils.sheet_to_json(ws,{header:1,defval:''});}
+function makeCfg(){return{gradeCC:DEF.gradeCC,gradeR:DEF.gradeR,sectionCC:DEF.sectionCC,sectionR:DEF.sectionR,nameCL:DEF.nameCL,nameRow:DEF.nameRow};}
+function getSubject(fi){const el=v('fsub_'+fi);return el?el.value.trim():'';}
+
+// ── Arabic grade sorting ──
+const ORD={'الأول':1,'الثاني':2,'الثالث':3,'الرابع':4,'الخامس':5,'السادس':6,'السابع':7,'الثامن':8,'التاسع':9,'العاشر':10,'أول':1,'ثاني':2,'ثالث':3,'رابع':4,'خامس':5,'سادس':6,'سابع':7,'ثامن':8,'تاسع':9,'عاشر':10};
+function gradeNum(g){
+  g=String(g);
+  const sec=g.includes('ثانوي')||g.includes('ثانوية');
+  const mid=g.includes('إعدادي')||g.includes('متوسط')||g.includes('اعدادي');
+  for(const[w,n]of Object.entries(ORD)){if(g.includes(w))return sec?100+n:mid?50+n:n;}
+  const d=g.replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).match(/\d+/);
+  return d?+d[0]:999;
+}
+function sortGrades(gs){return[...new Set(gs)].sort((a,b)=>gradeNum(a)-gradeNum(b)||a.localeCompare(b,'ar'));}
+
+// ── File processing ──
+function processFile(f,ab){
+  const wb=XLSX.read(ab,{type:'array'});
+  const sheets=wb.SheetNames.map(sName=>({name:sName,data:sheetToArr(wb.Sheets[sName]),cfg:makeCfg()}));
+  return{fileName:f.name,sheets,open:true};
+}
+function handleFiles(nf){
+  if(!nf||!nf.length)return;
+  let p=nf.length;
+  Array.from(nf).forEach(f=>{
+    const ext=(f.name.split('.').pop()||'').toLowerCase();
+    if(!['xlsx','xls','csv'].includes(ext)){p--;return;}
+    const r=new FileReader();
+    r.onload=e=>{
+      try{files.push(processFile(f,e.target.result));}catch(e){showErr('خطأ: '+f.name);}
+      if(--p<=0){renderAll();if(files.length)showPhase(1);}
+    };
+    r.readAsArrayBuffer(f);
+  });
+}
+v('fi').addEventListener('change',e=>{handleFiles(e.target.files);e.target.value='';});
+v('fi2').addEventListener('change',e=>{handleFiles(e.target.files);e.target.value='';});
+const dz=v('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('on');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('on'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('on');handleFiles(e.dataTransfer.files);});
+
+// ── Render ──
+function countNames(data,cfg){
+  const ci=cIdx(cfg.nameCL);let c=0;
+  for(let r=cfg.nameRow;r<data.length;r++){if(String((data[r]||[])[ci]||'').trim())c++;}
+  return c;
+}
+function renderAll(){
+  const fl=v('flist');
+  // Remove stale cards
+  Array.from(fl.children).forEach(el=>{if(parseInt(el.dataset.fi)>=files.length)el.remove();});
+  files.forEach((fd,fi)=>{if(!v('fcard_'+fi))fl.appendChild(buildCard(fd,fi));});
+  v('pvF').textContent=files.length;
+  v('pvSrc').textContent=files.reduce((s,f)=>s+f.sheets.length,0);
+  updateStats();
+}
+
+function buildCard(fd,fi){
+  const wrap=document.createElement('div');
+  wrap.className='fitem';wrap.id='fcard_'+fi;wrap.dataset.fi=fi;
+  const total=fd.sheets.reduce((s,sh)=>s+countNames(sh.data,sh.cfg),0);
+  wrap.innerHTML=`
+  <div class="fhdr" onclick="toggleOpen(${fi})">
+    <i class="ti ti-file-spreadsheet" style="font-size:18px;color:#2e9c5c;flex-shrink:0"></i>
+    <span class="fn">${fd.fileName}</span>
+    <span class="fbadge">${fd.sheets.length} شيت</span>
+    <span class="fc">${total} طالب</span>
+    <i class="ti ti-chevron-down chev ${fd.open?'open':''}" id="chev_${fi}"></i>
+    <button class="xb" onclick="event.stopPropagation();removeFile(${fi})"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="fsubrow" onclick="event.stopPropagation()">
+    <label><i class="ti ti-book-2" style="font-size:13px"></i> المادة:</label>
+    <input type="text" class="subinput" id="fsub_${fi}" placeholder="اكتب اسم المادة…" oninput="updateStats()">
+  </div>
+  <div class="fbody ${fd.open?'open':''}" id="fbody_${fi}">
+    ${fd.sheets.map((sh,si)=>buildSheetBlock(fi,si,sh)).join('')}
+  </div>`;
+  return wrap;
+}
+
+function buildSheetBlock(fi,si,sh){
+  const c=sh.cfg;
+  const gv=getCell(sh.data,c.gradeR,cIdx(c.gradeCC));
+  const sv=getCell(sh.data,c.sectionR,cIdx(c.sectionCC));
+  const nv=getCell(sh.data,c.nameRow,cIdx(c.nameCL));
+  const cnt=countNames(sh.data,c);
+  const combined=!sv; // auto-detect: section cell empty → combined mode
+  return `<div class="sh-block">
+    <div class="sh-title">
+      <i class="ti ti-table" style="font-size:14px;color:#4a7cf7"></i>
+      <span>${esc(sh.name)}</span>
+      <span style="font-size:11px;color:#888;font-weight:400">${cnt} طالب</span>
+      ${gv?`<span style="font-size:11px;padding:1px 7px;background:#fff4e0;color:#b7660d;border-radius:8px">${esc(gv)}</span>`:''}
+      ${!combined&&sv?`<span style="font-size:11px;padding:1px 7px;background:#e6f5ec;color:#1a7c3e;border-radius:8px">شعبة: ${esc(sv)}</span>`:''}
+      ${combined&&gv?`<span class="combined-badge"><i class="ti ti-link" style="font-size:10px"></i> الصف والشعبة في خلية واحدة</span>`:''}
+    </div>
+    <div class="cgrid">
+      <div>
+        <span class="tag tag-o"><i class="ti ti-school" style="font-size:10px"></i> الصف ${combined?'والشعبة':''}</span>
+        <div class="ci">
+          <span>عمود</span><input class="cl" type="text" id="f${fi}s${si}_gCC" value="${c.gradeCC}" oninput="this.value=this.value.toUpperCase();syncSh(${fi},${si})">
+          <span>سطر</span><input class="sm" type="number" id="f${fi}s${si}_gR" value="${c.gradeR+1}" min="1" oninput="syncSh(${fi},${si})">
+        </div>
+        <span class="pv ${gv?'':'em'}" id="f${fi}s${si}_gPV">${gv||'— فارغة'}</span>
+      </div>
+      <div id="f${fi}s${si}_secCol" style="${combined?'opacity:.4;pointer-events:none':''}">
+        <span class="tag tag-g"><i class="ti ti-layout-grid" style="font-size:10px"></i> الشعبة</span>
+        <div class="ci">
+          <span>عمود</span><input class="cl" type="text" id="f${fi}s${si}_sCC" value="${c.sectionCC}" oninput="this.value=this.value.toUpperCase();syncSh(${fi},${si})">
+          <span>سطر</span><input class="sm" type="number" id="f${fi}s${si}_sR" value="${c.sectionR+1}" min="1" oninput="syncSh(${fi},${si})">
+        </div>
+        <span class="pv ${sv?'':'em'}" id="f${fi}s${si}_sPV">${sv||'— فارغة (سيُعتمد وضع الدمج)'}</span>
+      </div>
+      <div>
+        <span class="tag tag-b"><i class="ti ti-user" style="font-size:10px"></i> الأسماء</span>
+        <div class="ci">
+          <span>عمود</span><input class="cl" type="text" id="f${fi}s${si}_nCL" value="${c.nameCL}" oninput="this.value=this.value.toUpperCase();syncSh(${fi},${si})">
+          <span>من سطر</span><input class="sm" type="number" id="f${fi}s${si}_nR" value="${c.nameRow+1}" min="1" oninput="syncSh(${fi},${si})">
+        </div>
+        <span class="pv ${nv?'':'em'}" id="f${fi}s${si}_nPV">${nv?nv.substring(0,16):'— فارغة'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function syncSh(fi,si){
+  const sh=files[fi].sheets[si],c=sh.cfg;
+  const g=(id,def)=>{const el=v(id);return el?(el.value||'').trim().toUpperCase()||def:def;};
+  const gi=(id,def)=>{const el=v(id);return el?Math.max(0,(parseInt(el.value)||def+1)-1):def;};
+  c.gradeCC  =g(`f${fi}s${si}_gCC`,'B'); c.gradeR  =gi(`f${fi}s${si}_gR`,1);
+  c.sectionCC=g(`f${fi}s${si}_sCC`,'B'); c.sectionR=gi(`f${fi}s${si}_sR`,7);
+  c.nameCL   =g(`f${fi}s${si}_nCL`,'N'); c.nameRow =gi(`f${fi}s${si}_nR`,19);
+  const gv=getCell(sh.data,c.gradeR,cIdx(c.gradeCC));
+  const sv=getCell(sh.data,c.sectionR,cIdx(c.sectionCC));
+  const nv=getCell(sh.data,c.nameRow,cIdx(c.nameCL));
+  const combined=!sv;
+  const sp=(id,val,empty)=>{const el=v(id);if(!el)return;el.textContent=val||empty||'— فارغة';el.className='pv'+(val?'':' em');};
+  sp(`f${fi}s${si}_gPV`,gv);
+  sp(`f${fi}s${si}_sPV`,sv,'— فارغة (سيُعتمد وضع الدمج)');
+  sp(`f${fi}s${si}_nPV`,nv.substring(0,16));
+  const sc=v(`f${fi}s${si}_secCol`);
+  if(sc)sc.style.cssText=combined?'opacity:.4;pointer-events:none':'';
+  updateStats();
+}
+function toggleOpen(fi){
+  files[fi].open=!files[fi].open;
+  v('fbody_'+fi).className='fbody'+(files[fi].open?' open':'');
+  v('chev_'+fi).className='ti ti-chevron-down chev'+(files[fi].open?' open':'');
+}
+function removeFile(fi){
+  // save subjects
+  files.forEach((_,i)=>{const el=v('fsub_'+i);if(el)files[i]._sub=el.value.trim();});
+  files.splice(fi,1);
+  const fl=v('flist');fl.innerHTML='';
+  files.forEach((fd,ni)=>{
+    fl.appendChild(buildCard(fd,ni));
+    const inp=v('fsub_'+ni);if(inp&&fd._sub)inp.value=fd._sub;
+  });
+  v('pvF').textContent=files.length;
+  v('pvSrc').textContent=files.reduce((s,f)=>s+f.sheets.length,0);
+  if(!files.length)showPhase(0);
+  updateStats();
+}
+
+// ── Collect with combined-mode detection ──
+function collectAll(){
+  const map=new Map(); // key → {grade, subject, combined, sections:[{section,students}]}
+  files.forEach((fd,fi)=>{
+    const subj=getSubject(fi)||'—';
+    fd.sheets.forEach(sh=>{
+      const c=sh.cfg;
+      const grade  =getCell(sh.data,c.gradeR,  cIdx(c.gradeCC))||'Unknown';
+      const section=getCell(sh.data,c.sectionR, cIdx(c.sectionCC));
+      const combined=!section;
+      const ci=cIdx(c.nameCL);
+      const students=[];
+      for(let r=c.nameRow;r<sh.data.length;r++){
+        const n=String((sh.data[r]||[])[ci]||'').trim();
+        if(n)students.push(n);
+      }
+      if(!students.length)return;
+      // Key: subject + grade (combined mode) or subject + grade + section (normal)
+      const key=subj+'||'+grade+(combined?'':('||'+section));
+      if(!map.has(key))map.set(key,{grade,subject:subj,combined,sections:[]});
+      const entry=map.get(key);
+      const secKey=combined?'':section;
+      const ex=entry.sections.find(s=>s.section===secKey);
+      if(ex)ex.students.push(...students);
+      else entry.sections.push({section:secKey,students:[...students]});
+    });
+  });
+  // Sort sections alphabetically within each grade
+  for(const entry of map.values()){
+    entry.sections.sort((a,b)=>a.section.localeCompare(b.section,'ar'));
+  }
+  return map;
+}
+
+function updateStats(){
+  const map=collectAll();
+  const all=[...map.values()].flatMap(g=>g.sections.flatMap(s=>s.students));
+  v('pvSt').textContent=all.length||'—';
+  v('pvSh').textContent=map.size||'—';
+  const gp=v('gradePreview');
+  if(map.size){
+    gp.style.display='block';
+    // Group by subject for display
+    const bySubj=new Map();
+    for(const{grade,subject,combined,sections}of map.values()){
+      if(!bySubj.has(subject))bySubj.set(subject,[]);
+      const cnt=sections.reduce((s,x)=>s+x.students.length,0);
+      const label=combined?grade:`${grade}(${sections.map(s=>s.section).join('·')})`;
+      bySubj.get(subject).push(`${label}:${cnt}`);
+    }
+    gp.innerHTML='<strong>توزيع:</strong><br>'+[...bySubj.entries()].map(([s,gs])=>`📚 ${s}: ${gs.join(' | ')}`).join('<br>');
+  }else gp.style.display='none';
+}
+
+// ════════════════════════════════════════════════════════════
+// XLSX BUILDER
+// Header structure (3 rows):
+// Row H:   # | name | ش1 | ش2 | [شهر3 merged] | نهائي | مجموع
+// Row H+1: [↕] [↕] [↕] [↕] | Q1 Q2..QN | [↕] [↕]
+// Row H+2: [↕] [↕] [↕] [↕] | [علامة below each Q] | [↕] [↕]
+//
+// Merges:
+//  # → A_H:A_{H+2}   (3 rows)
+//  name → B_H:B_{H+2}   (3 rows)
+//  ش1 → C_H:C_{H+2}   (3 rows — label + 2 empty rows below = علامة space)
+//  ش2 → D_H:D_{H+2}   (3 rows)
+//  شهر3 → E_H:{m3E}_H  (horizontal, row H only)
+//  Qi → {col}_{H+1}:{col}_{H+2}  (2 rows each)
+//  نهائي → {col}_H:{col}_{H+2}  (3 rows)
+//  مجموع → {col}_H:{col}_{H+2}  (3 rows)
+// ════════════════════════════════════════════════════════════
+async function buildXLSX(groupMap,coverInfo,SUB){
+  const zip=new JSZip();
+  const sl=[],sm=new Map();
+  function S(s){s=String(s??'');if(sm.has(s))return sm.get(s);const i=sl.length;sl.push(s);sm.set(s,i);return i;}
+  const EMPTY=S('');
+
+  // TC = #(0) name(1) ش1(2) ش2(3) Q1..QN(4..3+SUB) نهائي(4+SUB) مجموع(5+SUB)
+  const TC=6+SUB;
+  const m3S=4,m3Ei=3+SUB,m3E=cLtr(m3Ei);
+  const finC=4+SUB,finCol_=cLtr(finC);
+  const totC=5+SUB,totCol_=cLtr(totC);
+
+  // Style indices
+  // 0:DEF 1:TITLE 2:INFO_R 3:INFO_C 4:INFO_L 5:HDR 6:HDRW 7:HDRW_TOT 8:NAME 9:DATA 10:DATA_TOT 11:CVR_LBL 12:CVR_VAL
+  const ST={DEF:0,TITLE:1,IR:2,IC:3,IL:4,HDR:5,HDRW:6,HDRWT:7,NAME:8,DATA:9,DTAT:10,CLBL:11,CVAL:12};
+
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="5">
+<font><sz val="11"/><name val="Calibri"/></font>
+<font><b/><sz val="22"/><name val="Calibri"/></font>
+<font><b/><sz val="13"/><name val="Calibri"/></font>
+<font><b/><sz val="11"/><name val="Calibri"/></font>
+<font><sz val="13"/><name val="Calibri"/></font>
+</fonts>
+<fills count="6">
+<fill><patternFill patternType="none"/></fill>
+<fill><patternFill patternType="gray125"/></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFD9E1F2"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFFFF0A0"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFDCE6F1"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFEAF4FB"/></patternFill></fill>
+</fills>
+<borders count="2">
+<border><left/><right/><top/><bottom/><diagonal/></border>
+<border><left style="thin"><color rgb="FF595959"/></left><right style="thin"><color rgb="FF595959"/></right><top style="thin"><color rgb="FF595959"/></top><bottom style="thin"><color rgb="FF595959"/></bottom><diagonal/></border>
+</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="13">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment horizontal="left" vertical="center" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="3" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="3" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="center" vertical="center" wrapText="1" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="3" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="center" vertical="center" wrapText="1" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1"><alignment horizontal="center" vertical="center" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="2" fillId="5" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+<xf numFmtId="0" fontId="4" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1"><alignment horizontal="right" vertical="center" readingOrder="2"/></xf>
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+
+  const cr=(r,c)=>cLtr(c)+(r+1);
+  const cs=(r,c,si,st)=>`<c r="${cr(r,c)}" s="${st}" t="s"><v>${si}</v></c>`;
+  const cn=(r,c,n,st)=>`<c r="${cr(r,c)}" s="${st}"><v>${n}</v></c>`;
+  const ce=(r,c,st)=>cs(r,c,EMPTY,st);
+
+  const sheetXmls=[],sheetNames=[],used=new Set();
+
+  // ── COVER SHEET (A4 Landscape) ──
+  {
+    const CW=8,CLAST='H'; // 8 columns for A4 landscape
+    // Collect all subjects and grades for cover
+    const allSubjects=[...new Set(files.map((_,fi)=>getSubject(fi)).filter(Boolean))].join(' · ')||'—';
+    const gradeSecMap=new Map();
+    for(const{grade,sections}of groupMap.values()){
+      if(!gradeSecMap.has(grade))gradeSecMap.set(grade,new Set());
+      sections.filter(s=>s.section).forEach(s=>gradeSecMap.get(grade).add(s.section));
+    }
+    const sortedG=sortGrades([...gradeSecMap.keys()]);
+    // Build grades string: for each grade, list sections alphabetically
+    const gradeLines=sortedG.map(g=>{
+      const secs=[...gradeSecMap.get(g)].sort((a,b)=>a.localeCompare(b,'ar'));
+      return secs.length?`${g}   /   الشعب: ${secs.join(' · ')}`:g;
+    });
+
+    let csd='<sheetData>';
+    const cm=[];
+    let R=0;
+
+    // Spacer rows at top
+    csd+=`<row r="${++R}" ht="30" customHeight="1"></row>`;
+    csd+=`<row r="${++R}" ht="20" customHeight="1"></row>`;
+
+    // Title
+    csd+=`<row r="${++R}" ht="70" customHeight="1">${cs(R-1,0,S('دفتر العلامات الجانبي'),ST.TITLE)}</row>`;
+    cm.push(`A${R}:${CLAST}${R}`);
+
+    // Spacer
+    csd+=`<row r="${++R}" ht="20" customHeight="1"></row>`;
+
+    // Separator line (empty row with bottom border — simulate it with a tall colored row)
+    csd+=`<row r="${++R}" ht="6" customHeight="1">${cs(R-1,0,EMPTY,ST.HDR)}</row>`;
+    cm.push(`A${R}:${CLAST}${R}`);
+
+    csd+=`<row r="${++R}" ht="16" customHeight="1"></row>`;
+
+    // Info rows
+    const infoRows=[
+      ['المديرية',coverInfo.directorate],
+      ['المدرسة',coverInfo.school],
+      ['اسم المعلم / المعلمة',coverInfo.teacher],
+      ['المبحث',allSubjects],
+    ];
+    infoRows.forEach(([lbl,val])=>{
+      csd+=`<row r="${++R}" ht="34" customHeight="1">`;
+      // Label: cols 0-2 (3 cols), Value: cols 3-7 (5 cols)
+      csd+=cs(R-1,0,S(lbl),ST.CLBL);
+      for(let c=1;c<=2;c++)csd+=ce(R-1,c,ST.CLBL);
+      csd+=cs(R-1,3,S(val||'—'),ST.CVAL);
+      for(let c=4;c<CW;c++)csd+=ce(R-1,c,ST.CVAL);
+      csd+=`</row>`;
+      cm.push(`A${R}:C${R}`);
+      cm.push(`D${R}:${CLAST}${R}`);
+    });
+
+    // Grades (multi-line)
+    csd+=`<row r="${++R}" ht="${Math.max(34,sortedG.length*22)}" customHeight="1">`;
+    csd+=cs(R-1,0,S('الصفوف والشعب'),ST.CLBL);
+    for(let c=1;c<=2;c++)csd+=ce(R-1,c,ST.CLBL);
+    csd+=cs(R-1,3,S(gradeLines.join('\n')),ST.CVAL);
+    for(let c=4;c<CW;c++)csd+=ce(R-1,c,ST.CVAL);
+    csd+=`</row>`;
+    cm.push(`A${R}:C${R}`);
+    cm.push(`D${R}:${CLAST}${R}`);
+
+    csd+='</sheetData>';
+
+    // Column widths for landscape A4 (8 cols)
+    const cwXml=[15,8,8,20,12,12,12,12].map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('');
+
+    sheetXmls.push(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetViews><sheetView workbookViewId="0" rightToLeft="1"/></sheetViews>
+<sheetFormatPr defaultRowHeight="20"/>
+<cols>${cwXml}</cols>${csd}
+<mergeCells count="${cm.length}">${cm.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>
+<pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToPage="1"/>
+</worksheet>`);
+    sheetNames.push('الغلاف');used.add('الغلاف');
+  }
+
+  // ── DATA SHEETS — sorted by grade ascending ──
+  const sortedEntries=[...groupMap.entries()].sort(([,a],[,b])=>{
+    if(a.subject!==b.subject)return a.subject.localeCompare(b.subject,'ar');
+    return gradeNum(a.grade)-gradeNum(b.grade);
+  });
+
+  for(const[,{grade,subject,combined,sections}]of sortedEntries){
+    const secList=combined?'':sections.filter(s=>s.section).map(s=>s.section).join(' · ');
+    let sn=(grade+(secList?'_'+sections.map(s=>s.section).join(''):'')).replace(/[\\/?*[\]:]/g,'').substring(0,28)||'Sheet';
+    let att=sn,k=2;while(used.has(att))att=sn+'_'+k++;
+    used.add(att);sheetNames.push(att);
+
+    const lastCol=cLtr(TC-1);
+    const z1=Math.floor(TC/3),z2=Math.floor(2*TC/3);
+
+    let sd='<sheetData>';
+    const merges=[];
+    let R=0;
+
+    // Row 0: Title
+    sd+=`<row r="${R+1}" ht="34" customHeight="1">${cs(R,0,S('دفتر العلامات الجانبي'),ST.TITLE)}</row>`;
+    merges.push(`A1:${lastCol}1`);R++;
+
+    // Row 1: Info
+    // Right zone: الصف (cols 0..z1-1)
+    // Center zone: المادة (cols z1..z2-1)
+    // Left zone: الشعبة or empty (cols z2..TC-1)
+    sd+=`<row r="${R+1}" ht="24" customHeight="1">`;
+    sd+=cs(R,0,S('الصف: '+grade),ST.IR);
+    for(let c=1;c<z1;c++)sd+=ce(R,c,ST.DEF);
+    sd+=cs(R,z1,S('المادة: '+subject),ST.IC);
+    for(let c=z1+1;c<z2;c++)sd+=ce(R,c,ST.DEF);
+    sd+=cs(R,z2,S(combined?'':('الشعبة: '+secList)),ST.IL);
+    for(let c=z2+1;c<TC;c++)sd+=ce(R,c,ST.DEF);
+    sd+=`</row>`;
+    if(z1>1)merges.push(`A${R+1}:${cLtr(z1-1)}${R+1}`);
+    if(z2-z1>1)merges.push(`${cLtr(z1)}${R+1}:${cLtr(z2-1)}${R+1}`);
+    if(TC-z2>1)merges.push(`${cLtr(z2)}${R+1}:${lastCol}${R+1}`);
+    R++;
+
+    // Row 2: spacer
+    sd+=`<row r="${R+1}" ht="5" customHeight="1"></row>`;R++;
+
+    // ── 3-row header block ──
+    const H=R+1; // Excel 1-based start of header
+
+    // Row H (R): main labels
+    sd+=`<row r="${R+1}" ht="22" customHeight="1">`;
+    sd+=cs(R,0,S('#'),ST.HDRW);
+    sd+=cs(R,1,S('اسم الطالب'),ST.HDRW);
+    sd+=cs(R,2,S('الشهر 1'),ST.HDRW);
+    sd+=cs(R,3,S('الشهر 2'),ST.HDRW);
+    sd+=cs(R,m3S,S('الشهر 3'),ST.HDRW);
+    for(let c=m3S+1;c<=m3Ei;c++)sd+=ce(R,c,ST.HDR);
+    sd+=cs(R,finC,S('الامتحان النهائي'),ST.HDRW);
+    sd+=cs(R,totC,S('المجموع'),ST.HDRWT); // total col style
+    sd+=`</row>`;R++;
+
+    // Row H+1 (R): Q labels + inner cells of 3-row merges
+    sd+=`<row r="${R+1}" ht="18" customHeight="1">`;
+    // inner cells of 3-row merges (#,name,ش1,ش2,نهائي,مجموع)
+    sd+=ce(R,0,ST.HDR);sd+=ce(R,1,ST.HDR);
+    sd+=ce(R,2,ST.HDR);sd+=ce(R,3,ST.HDR);
+    // Q labels — these are the TOP cells of 2-row Q merges
+    for(let i=0;i<SUB;i++)sd+=cs(R,m3S+i,S('Q'+(i+1)),ST.HDR);
+    sd+=ce(R,finC,ST.HDR);sd+=ce(R,totC,ST.HDR); // inner of 3-row merges
+    sd+=`</row>`;R++;
+
+    // Row H+2 (R): علامة spaces (inner of all merges)
+    sd+=`<row r="${R+1}" ht="18" customHeight="1">`;
+    sd+=ce(R,0,ST.HDR);sd+=ce(R,1,ST.HDR); // inner # name
+    sd+=ce(R,2,ST.HDR);sd+=ce(R,3,ST.HDR); // inner ش1 ش2 (= علامة space within 3-row merge)
+    for(let c=m3S;c<=m3Ei;c++)sd+=ce(R,c,ST.HDR); // inner Q merges (= علامة space)
+    sd+=ce(R,finC,ST.HDR);sd+=ce(R,totC,ST.HDR); // inner نهائي مجموع
+    sd+=`</row>`;R++;
+
+    // Build merges for header
+    const H2=H+1,H3=H+2; // Excel rows (1-based)
+    merges.push(`A${H}:A${H3}`);      // # — 3 rows
+    merges.push(`B${H}:B${H3}`);      // name — 3 rows
+    merges.push(`C${H}:C${H3}`);      // ش1 — 3 rows (label + 2 empty = علامة space)
+    merges.push(`D${H}:D${H3}`);      // ش2 — 3 rows
+    merges.push(`E${H}:${m3E}${H}`);  // شهر3 — horizontal, row H only
+    for(let i=0;i<SUB;i++){           // Q1..QN — 2 rows each (label + علامة)
+      const qc=cLtr(m3S+i);
+      merges.push(`${qc}${H2}:${qc}${H3}`);
+    }
+    merges.push(`${finCol_}${H}:${finCol_}${H3}`); // نهائي — 3 rows
+    merges.push(`${totCol_}${H}:${totCol_}${H3}`); // مجموع — 3 rows
+
+    // ── Student rows ──
+    let serial=1;
+    sections.forEach(({students})=>{
+      students.forEach(name=>{
+        sd+=`<row r="${R+1}" ht="20" customHeight="1">`;
+        sd+=cn(R,0,serial++,ST.DATA);
+        sd+=cs(R,1,S(name),ST.NAME);
+        for(let c=2;c<totC;c++)sd+=ce(R,c,ST.DATA);
+        sd+=ce(R,totC,ST.DTAT); // مجموع column — shaded
+        sd+=`</row>`;R++;
+      });
+    });
+    sd+='</sheetData>';
+
+    const widths=[6,30,9,9,...Array(SUB).fill(7),14,10];
+    let colsXml='<cols>';
+    widths.forEach((w,i)=>colsXml+=`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`);
+    colsXml+='</cols>';
+
+    sheetXmls.push(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetViews><sheetView workbookViewId="0" rightToLeft="1"/></sheetViews>
+<sheetFormatPr defaultRowHeight="20"/>
+${colsXml}${sd}
+<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>
+<pageSetup paperSize="9" orientation="landscape"/>
+</worksheet>`);
+  }
+
+  // ── Package ──
+  const ssXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${sl.length}" uniqueCount="${sl.length}">${sl.map(s=>`<si><t xml:space="preserve">${esc(s)}</t></si>`).join('')}</sst>`;
+  const wbXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheetNames.map((n,i)=>`<sheet name="${esc(n)}" sheetId="${i+1}" r:id="rId${i+2}"/>`).join('')}</sheets></workbook>`;
+  const wbRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId${sheetNames.length+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>${sheetNames.map((_,i)=>`<Relationship Id="rId${i+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}</Relationships>`;
+  const ct=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>${sheetNames.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`;
+
+  zip.file('[Content_Types].xml',ct);
+  zip.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
+  zip.file('xl/workbook.xml',wbXml);
+  zip.file('xl/_rels/workbook.xml.rels',wbRels);
+  zip.file('xl/styles.xml',styles);
+  zip.file('xl/sharedStrings.xml',ssXml);
+  sheetXmls.forEach((x,i)=>zip.file(`xl/worksheets/sheet${i+1}.xml`,x));
+  return await zip.generateAsync({type:'base64',compression:'DEFLATE'});
+}
+
+async function generate(){
+  showErr('');
+  if(!files.length){showErr('الرجاء رفع ملف على الأقل');return;}
+  const missing=files.map((_,fi)=>fi).filter(fi=>!getSubject(fi));
+  if(missing.length){
+    missing.forEach(fi=>{const el=v('fsub_'+fi);if(el)el.classList.add('missing');});
+    showErr('الرجاء إدخال اسم المادة للملفات المحددة بالإطار الأحمر');return;
+  }
+  files.forEach((_,fi)=>{const el=v('fsub_'+fi);if(el)el.classList.remove('missing');});
+  const map=collectAll();
+  if(!map.size){showErr('لم يتم العثور على أسماء — تحقق من إعدادات الأعمدة');return;}
+  const SUB=Math.max(1,parseInt(v('subCols').value)||5);
+  const coverInfo={
+    directorate:(v('directorate').value||'').trim(),
+    school:(v('school').value||'').trim(),
+    teacher:(v('teacher').value||'').trim(),
+  };
+  v('genBtn').disabled=true;v('loadingBox').style.display='flex';
+  try{
+    const b64=await buildXLSX(map,coverInfo,SUB);
+    const subjects=[...new Set(files.map((_,fi)=>getSubject(fi)))].join('_');
+    const fname=`Gradebook_${subjects.replace(/[\s\\/?*[\]:]/g,'')}.xlsx`;
+    v('dlLink').href='data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,'+b64;
+    v('dlLink').download=fname;
+    v('scTxt').textContent=map.size;
+    showPhase(2);
+  }catch(e){showErr('خطأ: '+e.message);console.error(e);}
+  finally{v('genBtn').disabled=false;v('loadingBox').style.display='none';}
+}
+function showPhase(n){['phase0','phase1','phase2'].forEach((id,i)=>v(id).style.display=i===n?'block':'none');}
+function resetAll(){
+  files=[];v('flist').innerHTML='';
+  ['directorate','school','teacher'].forEach(id=>{if(v(id))v(id).value='';});
+  v('subCols').value='5';showErr('');showPhase(0);
+}
+</script>
+</body>
+</html>
